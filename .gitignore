@@ -1,3 +1,9 @@
 data
 temp
 *.pyc
+*/__pycache__
+__pycache__
+python_env
+.idea
+__init__.py
+*.pdf
