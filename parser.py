@@ -42,6 +42,7 @@ class MangaInUaParser:
                  data_folder: Union[str, Path, None] = None,
                  logger: logging.Logger = None):
         self.logger = logger if logger else get_default_logger()
+
         if manga_url.startswith(self.MANGAS_SUB_URL):
             self.manga_url = manga_url
         else:
@@ -67,6 +68,7 @@ class MangaInUaParser:
         return links
 
     def get_images_urls(self, chapter_url: str) -> List[str]:
+        images_urls = []
         for attempt in range(0, self.DOWNLOAD_ATTEMPTS + 1):
             resp = requests.get(chapter_url)
             soup = BeautifulSoup(resp.content, features='html.parser')
@@ -187,16 +189,24 @@ def parse_args() -> argparse.Namespace:
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--manga_url', '-url', type=str, required=True,
                              help='Example: boyovik/2252-berserk-berserk.html')
-    args_parser.add_argument('--result_pdf', '-pdf', type=str, default=None,
-                             help='The path where to store the result pdf.')
+    args_parser.add_argument('--result_folder', type=str, default=None,
+                             help='The path where to store the result chapters pdfs.')
     args_parser.add_argument('--base_url', type=str, help='Base url.', default=MangaInUaParser.BASE_URL)
     args_parser.add_argument('--data_folder', '-d', type=str, default=None,
                              help='The path where to store downloaded images')
+
+    args_parser.add_argument('--result_pdf', '-pdf', type=str, default=None,
+                             help='The path where to store the result pdf.')
+    args_parser.add_argument('--one_file', action='store_true', default=False,
+                             help='The path where to store the result pdf.')
+
     args_parser.add_argument('--keep_temp', action='store_true', help='Keep temp folder.', default=False)
     args_parser.add_argument('--keep_data', action='store_true', default=False,
                              help='Keep folder with downloaded images.')
+
     args_parser.add_argument('--force', action='store_true', help='Delete folder if exists', default=False)
     args_parser.add_argument('--resolution', '-r', type=float, help='PDF resolution.', default=100.)
+
     args_parser.add_argument('--log_level', choices=tuple(range(0, 51, 10)),
                              help='Log level', default=logging.INFO)
 
@@ -215,17 +225,20 @@ def main():
     parser.parse(forced=args.force)
 
     result_pdf = args.result_pdf if args.result_pdf else f"{args.manga_url.split('/')[-1].split('.')[-2]}.pdf"
-    pdf_merge = MangaPDFMerger(result_file=result_pdf,
+    result_folder = args.result_folder if args.result_folder else args.manga_url.split('/')[-1].split('.')[-2]
+    pdf_merge = MangaPDFMerger(result_folder=result_folder,
                                data_folder=parser.data_folder,
                                logger=logger,
-                               resolution=args.resolution)
+                               resolution=args.resolution,
+                               result_pdf=result_pdf,
+                               )
 
-    pdf_merge.merge(args.force, delete_temp=not args.keep_temp)
+    pdf_merge.merge(args.force, delete_temp=not args.keep_temp, merge_to_one_pdf=args.one_file)
 
     if not args.keep_data:
         shutil.rmtree(parser.data_folder)
 
-    logger.info(f'Done in {time.time() - start} sec')
+    logger.info(f'Done in {round(time.time() - start, 2)} sec')
 
 
 if __name__ == '__main__':

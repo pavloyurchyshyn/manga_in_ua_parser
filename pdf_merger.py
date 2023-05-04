@@ -22,15 +22,21 @@ class MangaPDFMerger:
     PROCESSES: int = cpu_count()
     TEMPORARY_FOLDER_NAME: str = 'temp'
 
-    def __init__(self, result_file: Path,
+    def __init__(self, result_folder: Path,
                  data_folder: Path,
                  logger: Logger,
-                 img_formats: tuple = ('.jpg',),
+                 result_pdf: Path = None,
+                 img_formats: tuple = ('.jpg', '.png'),
                  resolution: float = 100.0):
 
-        self.result_file: Path = Path(result_file)
-        if not self.result_file.is_absolute():
-            self.result_file = Path(os.getcwd(), self.result_file)
+        self.result_folder: Path = Path(result_folder)
+        if result_pdf:
+            self.result_pdf: Path = Path(result_pdf)
+        else:
+            self.result_pdf: Path = self.result_folder.parent / f'{self.result_folder.name}.pdf'
+
+        if not self.result_folder.is_absolute():
+            self.result_folder = Path(os.getcwd(), self.result_folder)
 
         self.logger: Logger = logger
         self.base_folder: Path = Path(data_folder)
@@ -53,9 +59,10 @@ class MangaPDFMerger:
         images: List[Path] = self.collect_images_in_folder(folder)
 
         if not images:
+            self.logger.warning(f'No images in {folder}')
             return
 
-        result_pdf = Path(result_pdf) if result_pdf else self.result_file
+        result_pdf = Path(result_pdf) if result_pdf else self.result_folder
         result_pdf.parent.mkdir(parents=True, exist_ok=True)
 
         temp_folder = self.base_folder.parent / self.TEMPORARY_FOLDER_NAME / folder.name
@@ -72,10 +79,10 @@ class MangaPDFMerger:
         pool.close()
         pool.join()
         self.merge_pdfs(*pdfs, result_pdf=result_pdf)
-        self.logger.info(f'Created pdf {result_pdf} from {folder} ({time.time() - start} sec)')
+        self.logger.info(f'Created pdf {result_pdf} from {folder} ({round(time.time() - start, 2)} sec)')
 
-    def merge_pdfs(self, *pdfs: Path, result_pdf: Path = None):
-        result_pdf = result_pdf if result_pdf else self.result_file
+    @staticmethod
+    def merge_pdfs(*pdfs: Path, result_pdf: Path):
         pdf_merger = PdfMerger()
         try:
             for pdf_path in pdfs:
@@ -88,17 +95,17 @@ class MangaPDFMerger:
         finally:
             pdf_merger.close()
 
-    def merge(self, force: bool = False, delete_temp: bool = True):
+    def merge(self, force: bool = False, delete_temp: bool = True, merge_to_one_pdf: bool = False):
         start = time.time()
 
         temp_folder: Path = self.base_folder.parent / self.TEMPORARY_FOLDER_NAME
-        chapters_temp = temp_folder / 'chapters_pdfs'
+        chapters_folder = self.result_folder
 
-        if force and chapters_temp.exists():
-            shutil.rmtree(chapters_temp)
+        if force and chapters_folder.exists():
+            shutil.rmtree(chapters_folder)
 
         try:
-            self.convert_images_in_folder_to_pdf(self.base_folder, result_pdf=chapters_temp / '0.pdf')
+            self.convert_images_in_folder_to_pdf(self.base_folder, result_pdf=chapters_folder / '0.pdf')
             chapters_folders = []
             for f in sorted(os.listdir(self.base_folder), key=lambda p: int(Path(p).name)):
                 f: Path = self.base_folder / f
@@ -106,10 +113,14 @@ class MangaPDFMerger:
                     chapters_folders.append(f)
 
             for i, folder_path in enumerate(chapters_folders, start=1):
-                self.convert_images_in_folder_to_pdf(folder=folder_path, result_pdf=chapters_temp / f'{i}.pdf')
+                self.convert_images_in_folder_to_pdf(folder=folder_path, result_pdf=chapters_folder / f'{i}.pdf')
+                self.logger.info(f'{i}/{len(chapters_folders)} chapter generated to {chapters_folder / f"{i}.pdf"}')
 
-            self.merge_pdfs(*(chapters_temp / f for f in os.listdir(chapters_temp)))
-
+            if merge_to_one_pdf:
+                pdfs = [chapters_folder / f for f in os.listdir(chapters_folder)]
+                self.logger.info(f'Merging into one pdf - {self.result_pdf}: {", ".join(map(str, pdfs))}')
+                self.merge_pdfs(*pdfs, result_pdf=self.result_pdf)
+                self.logger.info(f'Result one pdf stored in {self.result_pdf}')
         except Exception as e:
             self.logger.error(e)
             raise e
@@ -119,5 +130,5 @@ class MangaPDFMerger:
                 shutil.rmtree(temp_folder)
 
         self.logger.info(f'Finished within {round(time.time() - start, 2)} sec')
-        self.logger.info(f'Result stored in {self.result_file}')
+        self.logger.info(f'Result stored in {self.result_folder}')
 
