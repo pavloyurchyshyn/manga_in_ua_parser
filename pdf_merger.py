@@ -79,7 +79,8 @@ class MangaPDFMerger:
         pool.close()
         pool.join()
         self.merge_pdfs(*pdfs, result_pdf=result_pdf)
-        self.logger.info(f'Created pdf {result_pdf} from {folder} ({round(time.time() - start, 2)} sec)')
+        self.logger.info(f'Created pdf {result_pdf} from {folder}({len(images)} imgs)'
+                         f' in {round(time.time() - start, 2)} sec.')
 
     @staticmethod
     def merge_pdfs(*pdfs: Path, result_pdf: Path):

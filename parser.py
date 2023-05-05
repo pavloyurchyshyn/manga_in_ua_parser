@@ -164,7 +164,7 @@ class MangaInUaParser:
             self.download_chapter(url=url, chapter_folder=chapter_folder, chapter_string=chapter_string)
 
         self.logger.info(f'All chapters({len(chapters_urls)}) '
-                         f'downloaded within {round(time.time() - global_start, 2)} sec.')
+                         f'downloaded within {time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - global_start))}.')
 
     def check_data_folder_for_content(self):
         if self.data_folder.exists() and os.listdir(self.data_folder):
@@ -198,7 +198,7 @@ def parse_args() -> argparse.Namespace:
     args_parser.add_argument('--result_pdf', '-pdf', type=str, default=None,
                              help='The path where to store the result pdf.')
     args_parser.add_argument('--one_file', action='store_true', default=False,
-                             help='The path where to store the result pdf.')
+                             help='Merge all manga in single pdf.')
 
     args_parser.add_argument('--keep_temp', action='store_true', help='Keep temp folder.', default=False)
     args_parser.add_argument('--keep_data', action='store_true', default=False,
@@ -236,9 +236,10 @@ def main():
     pdf_merge.merge(args.force, delete_temp=not args.keep_temp, merge_to_one_pdf=args.one_file)
 
     if not args.keep_data:
+        logger.info(f'Deleting data folder: {parser.data_folder}')
         shutil.rmtree(parser.data_folder)
 
-    logger.info(f'Done in {round(time.time() - start, 2)} sec')
+    logger.info(f'Done in {time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start))}')
 
 
 if __name__ == '__main__':
