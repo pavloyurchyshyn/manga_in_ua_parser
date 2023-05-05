@@ -55,4 +55,10 @@ Optional arguments:
 Example:
 parser.py -url boyovik/2252-berserk-berserk.html
 ```
+### Speed test:
 
+| URL                                              | Chapters |  Time   | Imgs format |
+|--------------------------------------------------|:--------:|:-------:|:-----------:|
+| boyovik/2252-berserk-berserk.html                |   379    |   31m   |     jpg     |
+| boyovik/15-ataka-titaniv-shingeki-no-kyojin.html |    82    | 1h 37 m |    webp     |
+| boyovik/15-ataka-titaniv-shingeki-no-kyojin.html |   227    |  25 m   |  jpg, png   |

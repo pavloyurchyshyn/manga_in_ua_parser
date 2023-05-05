@@ -37,6 +37,9 @@ class MangaInUaParser:
     IMAGE_URL_ATTR: str = 'data-src'
 
     DOWNLOAD_ATTEMPTS = 10
+    ERRORS_PAUSE = {503: 5,
+                    429: 5,
+                    }
 
     def __init__(self, manga_url: str, base_url: str = None,
                  data_folder: Union[str, Path, None] = None,
@@ -76,8 +79,8 @@ class MangaInUaParser:
             if not images_urls:
                 self.logger.warning(f'{resp.status_code} - {chapter_url} {attempt}/{self.DOWNLOAD_ATTEMPTS}')
                 if resp.status_code == 429 and attempt != self.DOWNLOAD_ATTEMPTS:
-                    self.logger.warning(f' Too many requests {chapter_url}. Sleep.')
-                    time.sleep(5)
+                    self.logger.warning(f' Too many requests {chapter_url}. Making pause.')
+                    time.sleep(self.ERRORS_PAUSE[resp.status_code])
                     continue
 
                 raise Exception(
@@ -103,14 +106,30 @@ class MangaInUaParser:
                 try:
                     response = await client.get(img_url)
                 except Exception as e:
-                    self.logger.warning(f'Error during chapter {downloaded_string}({img_url}) image download.\n{e}')
+                    self.logger.error(f'Error {e}')
+                    self.logger.warning(f'Error during chapter {downloaded_string}({img_url}) image download.{e}')
                     if attempt == self.DOWNLOAD_ATTEMPTS:
                         self.logger.error(f'Failed to download: {img_url}')
                 else:
+                    attempt_str = f'{attempt}/{self.DOWNLOAD_ATTEMPTS} attempt'
+                    if response.status_code != 200:
+                        self.logger.info(f'Download code: {response.status_code}')
                     if response.status_code == 404:
                         self.logger.error(f'Unable to download {img_url}(reason {response.status_code})')
                         self.errors.append(f'{img_url} unable to download({response.status_code})')
                         break
+                    elif response.status_code == 503:
+                        self.logger.error(f'Error during download {img_url}(reason {response.status_code})'
+                                          f' {attempt_str}. Making pause.')
+                        time.sleep(self.ERRORS_PAUSE[response.status_code])
+                        if attempt == self.DOWNLOAD_ATTEMPTS:
+                            self.errors.append(f'{img_url} unable to download({response.status_code})')
+
+                            break
+                        else:
+                            self.logger.info(f'Trying to download {img_url}')
+                            continue
+
                     self.save_img(img_path, response.content)
                     self.logger.debug(f'Downloaded {downloaded_string}({round(time.time() - start, 2)} sec)')
                     break
@@ -159,7 +178,7 @@ class MangaInUaParser:
         for i, url in enumerate(chapters_urls, start=1):
             chapter_string = f'{i}/{len(chapters_urls)}'
             chapter_folder = self.data_folder / str(i)
-            chapter_folder.mkdir()
+            chapter_folder.mkdir(exist_ok=True)
 
             self.download_chapter(url=url, chapter_folder=chapter_folder, chapter_string=chapter_string)
 
@@ -238,6 +257,9 @@ def main():
     if not args.keep_data:
         logger.info(f'Deleting data folder: {parser.data_folder}')
         shutil.rmtree(parser.data_folder)
+
+    if parser.errors:
+        logger.warning(f'Got parser errors: {", ".join(parser.errors)}')
 
     logger.info(f'Done in {time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start))}')
 

@@ -4,14 +4,19 @@ import time
 from logging import Logger
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
+
+import PyPDF2.errors
 from PIL import Image
 from PyPDF2 import PdfMerger
 from typing import List
 
 
 def convert_image_to_pdf(img_path: Path, pdf_path: Path, resolution: float = 100.):
-    with open(pdf_path, 'wb') as f:
-        Image.open(Path(img_path)).convert('RGB').save(f, "PDF", resolution=resolution)
+    try:
+        with open(pdf_path, 'wb') as f:
+            Image.open(Path(img_path)).convert('RGB').save(f, "PDF", resolution=resolution)
+    except PyPDF2.errors.EmptyFileError:
+        raise Exception(f'Unable to convert an empty file: {img_path}')
 
 
 def sort_function(file_path: Path) -> int:
@@ -26,7 +31,7 @@ class MangaPDFMerger:
                  data_folder: Path,
                  logger: Logger,
                  result_pdf: Path = None,
-                 img_formats: tuple = ('.jpg', '.png'),
+                 img_formats: tuple = ('.jpg', '.png', '.webp'),
                  resolution: float = 100.0):
 
         self.result_folder: Path = Path(result_folder)
@@ -92,7 +97,8 @@ class MangaPDFMerger:
             with open(result_pdf, 'wb') as f:
                 pdf_merger.write(f)
         except Exception:
-            raise
+            raise Exception(f'Unable to convert an empty file: {pdf_path}')
+
         finally:
             pdf_merger.close()
 
@@ -123,7 +129,7 @@ class MangaPDFMerger:
                 self.merge_pdfs(*pdfs, result_pdf=self.result_pdf)
                 self.logger.info(f'Result one pdf stored in {self.result_pdf}')
         except Exception as e:
-            self.logger.error(e)
+            self.logger.error(f'{e}. {folder_path}')
             raise e
         finally:
             if delete_temp:
