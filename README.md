@@ -12,6 +12,7 @@
     --base_url              Базове url, лінка сайту. За замовчування: https://manga.in.ua
     --data_folder -d        Папка куди зберігати завантажені картинки.
     
+    --join_every            Об'єднати кожні N частин в одну. Якщо 10, то 1-10.pdf, 11-20.pdf ...
     --result_pdf -pdf       Де зберігти всі томи в один файл. Приклад: result.pdf
     --one_file *            Об'єднати всі томи в один файл. 
     
@@ -40,6 +41,7 @@ Optional arguments:
     --base_url              Base url. By default: https://manga.in.ua
     --data_folder -d        The path where to store downloaded images
     
+    --join_every            Join every N chapters in one. If 10, then 1-10.pdf, 11-20.pdf ...
     --result_pdf -pdf       The path where to store the result pdf.
     --one_file *            Merge all manga in single pdf.
     
@@ -61,4 +63,4 @@ parser.py -url boyovik/2252-berserk-berserk.html
 |--------------------------------------------------|:--------:|:-------:|:-----------:|
 | boyovik/2252-berserk-berserk.html                |   379    |   31m   |     jpg     |
 | boyovik/15-ataka-titaniv-shingeki-no-kyojin.html |    82    | 1h 37 m |    webp     |
-| boyovik/15-ataka-titaniv-shingeki-no-kyojin.html |   227    |  25 m   |  jpg, png   |
+| boyovik/49-velikij-kush-one-piece.html           |   227    |  25 m   |  jpg, png   |

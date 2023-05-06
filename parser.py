@@ -214,6 +214,8 @@ def parse_args() -> argparse.Namespace:
     args_parser.add_argument('--data_folder', '-d', type=str, default=None,
                              help='The path where to store downloaded images')
 
+    args_parser.add_argument('--join_every', type=int, default=None,
+                             help='Join every N chapters into one, like 1-10.pdf, 11-20.pdf ...')
     args_parser.add_argument('--result_pdf', '-pdf', type=str, default=None,
                              help='The path where to store the result pdf.')
     args_parser.add_argument('--one_file', action='store_true', default=False,
@@ -253,6 +255,9 @@ def main():
                                )
 
     pdf_merge.merge(args.force, delete_temp=not args.keep_temp, merge_to_one_pdf=args.one_file)
+
+    if args.join_every is not None:
+        pdf_merge.join_every_N_pdfs(result_folder, n=args.join_every)
 
     if not args.keep_data:
         logger.info(f'Deleting data folder: {parser.data_folder}')
