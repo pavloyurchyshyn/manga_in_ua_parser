@@ -106,7 +106,6 @@ class MangaInUaParser:
                 try:
                     response = await client.get(img_url)
                 except Exception as e:
-                    self.logger.error(f'Error {e}')
                     self.logger.warning(f'Error during chapter {downloaded_string}({img_url}) image download.{e}')
                     if attempt == self.DOWNLOAD_ATTEMPTS:
                         self.logger.error(f'Failed to download: {img_url}')
@@ -227,6 +226,7 @@ def parse_args() -> argparse.Namespace:
 
     args_parser.add_argument('--force', action='store_true', help='Delete folder if exists', default=False)
     args_parser.add_argument('--resolution', '-r', type=float, help='PDF resolution.', default=100.)
+    args_parser.add_argument('--cpu', type=int, help='CPUs.', default=os.cpu_count())
 
     args_parser.add_argument('--log_level', choices=tuple(range(0, 51, 10)),
                              help='Log level', default=logging.INFO)
@@ -239,6 +239,7 @@ def main():
     args = parse_args()
 
     logger = get_default_logger(args.log_level)
+
     parser = MangaInUaParser(manga_url=args.manga_url,
                              base_url=args.base_url,
                              data_folder=args.data_folder,
@@ -247,6 +248,7 @@ def main():
 
     result_pdf = args.result_pdf if args.result_pdf else f"{args.manga_url.split('/')[-1].split('.')[-2]}.pdf"
     result_folder = args.result_folder if args.result_folder else args.manga_url.split('/')[-1].split('.')[-2]
+    MangaPDFMerger.CPU = args.cpu
     pdf_merge = MangaPDFMerger(result_folder=result_folder,
                                data_folder=parser.data_folder,
                                logger=logger,
@@ -257,6 +259,7 @@ def main():
     pdf_merge.merge(args.force, delete_temp=not args.keep_temp, merge_to_one_pdf=args.one_file)
 
     if args.join_every is not None:
+        logger.info(f'Joining every {args.join_every} in {result_folder}')
         pdf_merge.join_every_N_pdfs(result_folder, n=args.join_every)
 
     if not args.keep_data:

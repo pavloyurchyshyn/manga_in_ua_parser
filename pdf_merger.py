@@ -24,7 +24,7 @@ def sort_function(file_path: Path) -> int:
 
 
 class MangaPDFMerger:
-    PROCESSES: int = cpu_count()
+    CPU: int = cpu_count()
     TEMPORARY_FOLDER_NAME: str = 'temp'
 
     def __init__(self, result_folder: Path,
@@ -74,7 +74,7 @@ class MangaPDFMerger:
         temp_folder.mkdir(exist_ok=True, parents=True)
 
         pdfs = []
-        pool = Pool(processes=self.PROCESSES)
+        pool = Pool(processes=self.CPU)
         for i, image_path in enumerate(images, start=1):
             pdf_path = temp_folder / f'{image_path.parent.name}_{image_path.name}.pdf'
             pdfs.append(pdf_path)
@@ -139,25 +139,21 @@ class MangaPDFMerger:
         self.logger.info(f'Finished within {round(time.time() - start, 2)} sec')
         self.logger.info(f'Result stored in {self.result_folder}')
 
-    def join_every_N_pdfs(self, folder: Path, n: int):
+    @staticmethod
+    def join_every_N_pdfs(folder: Path, n: int):
         pdfs = [Path(folder, f) for f in os.listdir(folder) if f.endswith('.pdf')]
         pdfs.sort(key=lambda file_path: int(file_path.name.replace(file_path.suffix, '')))
         for start in range(0, len(pdfs), n):
             files = pdfs[start:start + n]
             result_pdf = Path(folder, f'{files[0].name.replace(files[0].suffix, "")}-{files[-1].name}')
-            self.merge_pdfs(*pdfs, result_pdf=result_pdf)
+            MangaPDFMerger.merge_pdfs(*files, result_pdf=result_pdf)
 
-            for f in pdfs:
+            for f in files:
                 os.remove(f)
 
+
 #
-# if __name__ == '__main__':
-#     n = 10
-#     folder = '49-velikij-kush-one-piece'
-#     pdfs = [Path(folder, f) for f in os.listdir(folder) if f.endswith('.pdf')]
-#     pdfs.sort(key=lambda file_path: int(file_path.name.replace(file_path.suffix, '')))
-#     for start in range(0, len(pdfs), n):
-#         files = pdfs[start:start + n]
-#         result_pdf = Path(folder, f'{files[0].name.replace(files[0].suffix, "")}-{files[-1].name}')
-#
-#         print(result_pdf, files)
+if __name__ == '__main__':
+    n = 10
+    folder = '49-velikij-kush-one-piece'
+    MangaPDFMerger.join_every_N_pdfs(folder, n)
