@@ -5,7 +5,7 @@
 
 ```
 Обов'язкові аргументи:
-    --manga_url, -url       URL до потрібної манги. Приклад: boyovik/2252-berserk-berserk.html
+    --manga_url, -url       URL до потрібної манґи. Приклад: boyovik/2252-berserk-berserk.html
 
 Необов'язкові аргументи:
     --result_folder         Папка в якій зберігати pdf томів.
@@ -14,7 +14,7 @@
     
     --join_every            Об'єднати кожні N частин в одну. Якщо 10, то 1-10.pdf, 11-20.pdf ...
     --result_pdf -pdf       Де зберігти всі томи в один файл. Приклад: result.pdf
-    --one_file *            Об'єднати всі томи в один файл. 
+    --one_file *            Об'єднати всі томи в один файл. Не рекомендовано для великих манґ.
     
     --keep_temp *           Keep temp folder.
     --keep_data *           Keep folder with downloaded images.
@@ -43,7 +43,7 @@ Optional arguments:
     
     --join_every            Join every N chapters in one. If 10, then 1-10.pdf, 11-20.pdf ...
     --result_pdf -pdf       The path where to store the result pdf.
-    --one_file *            Merge all manga in single pdf.
+    --one_file *            Merge all manga in single pdf. Not reccomended for big mangas.
     
     --keep_temp *           Keep temp folder.
     --keep_data *           Keep folder with downloaded images.
