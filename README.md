@@ -1,6 +1,6 @@
 # manga.in.ua parses
 
-Для запуску без інсталяції Python -> parser_compiled_v1.exe.
+~~Для запуску без інсталяції Python -> parser_compiled_v1.exe.~~
 ## Використання з командного рядка
 
 ```
