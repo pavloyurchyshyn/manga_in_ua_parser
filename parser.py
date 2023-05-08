@@ -205,7 +205,7 @@ class MangaInUaParser:
 
 def parse_args() -> argparse.Namespace:
     args_parser = argparse.ArgumentParser()
-    args_parser.add_argument('--manga_url', '-url', type=str, required=True,
+    args_parser.add_argument('url', type=str, nargs='?',
                              help='Example: boyovik/2252-berserk-berserk.html')
     args_parser.add_argument('--result_folder', type=str, default=None,
                              help='The path where to store the result chapters pdfs.')
@@ -239,15 +239,17 @@ def main():
     args = parse_args()
 
     logger = get_default_logger(args.log_level)
+    if args.url is None:
+        raise Exception(f'No url passed. First argument should be url. Or use {__file__} --help.')
 
-    parser = MangaInUaParser(manga_url=args.manga_url,
+    parser = MangaInUaParser(manga_url=args.url,
                              base_url=args.base_url,
                              data_folder=args.data_folder,
                              logger=logger)
     parser.parse(forced=args.force)
 
-    result_pdf = args.result_pdf if args.result_pdf else f"{args.manga_url.split('/')[-1].split('.')[-2]}.pdf"
-    result_folder = args.result_folder if args.result_folder else args.manga_url.split('/')[-1].split('.')[-2]
+    result_pdf = args.result_pdf if args.result_pdf else f"{args.url.split('/')[-1].split('.')[-2]}.pdf"
+    result_folder = args.result_folder if args.result_folder else args.url.split('/')[-1].split('.')[-2]
     MangaPDFMerger.CPU = args.cpu
     pdf_merge = MangaPDFMerger(result_folder=result_folder,
                                data_folder=parser.data_folder,

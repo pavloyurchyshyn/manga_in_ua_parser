@@ -4,8 +4,10 @@
 ## Використання з командного рядка
 
 ```
+Приклад: parser.py boyovik/2252-berserk-berserk.html
+
 Обов'язкові аргументи:
-    --manga_url, -url       URL до потрібної манґи. Приклад: boyovik/2252-berserk-berserk.html
+    url (позиційний)        URL до потрібної манґи. Приклад: boyovik/2252-berserk-berserk.html
 
 Необов'язкові аргументи:
     --result_folder         Папка в якій зберігати pdf томів.
@@ -24,17 +26,14 @@
     --log_level             Log level. За замовчування: 20.
 
 * - flag
-
-Приклад:
-parser.py -url boyovik/2252-berserk-berserk.html
-
 ```
 
 ## CLI usage
 ```
+Example: parser.py boyovik/2252-berserk-berserk.html
 
 Required arguments:
-    --manga_url, -url       Needed manga url*. Example: boyovik/2252-berserk-berserk.html
+    url (positional)        Needed manga url*. Example: boyovik/2252-berserk-berserk.html
 
 Optional arguments:
     --result_folder         The path where to store the result chapters pdfs.
@@ -53,9 +52,6 @@ Optional arguments:
     --log_level             Log level. By defalut: 20.
 
 * - flag
-
-Example:
-parser.py -url boyovik/2252-berserk-berserk.html
 ```
 ### Speed test:
 
