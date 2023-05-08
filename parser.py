@@ -174,7 +174,7 @@ class MangaInUaParser:
         self.data_folder.mkdir(exist_ok=True)
         global_start = time.time()
 
-        for i, url in enumerate(chapters_urls, start=1):
+        for i, url in enumerate(chapters_urls[:10], start=1):
             chapter_string = f'{i}/{len(chapters_urls)}'
             chapter_folder = self.data_folder / str(i)
             chapter_folder.mkdir(exist_ok=True)
